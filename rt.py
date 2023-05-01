@@ -21,7 +21,7 @@ def train_model(config):
     # To return your model, you could write it to storage and return its
     # URI in this dict, or return it as a Tune Checkpoint:
     # https://docs.ray.io/en/latest/tune/tutorials/tune-checkpoints.html
-    return {"score": scores.mean(), "other_data": "buh"}
+    return {"score": scores.mean(), "other_data": [config["n_estimators"], config["max_depth"], config["ccp_alpha"]]}
 
 
 
@@ -30,9 +30,9 @@ trial_space = {
     # This is an example parameter. You could replace it with filesystem paths,
     # model types, or even full nested Python dicts of model configurations, etc.,
     # that enumerate the set of trials to run.
-    "max_depth": tune.grid_search(np.arange(1, 2, 1)) ,
-    "n_estimators": tune.grid_search(np.arange(1, 2, 1)), 
-    "ccp_alpha" : tune.grid_search(np.arange(0.00, 0.02, 0.01)) 
+    "max_depth": tune.grid_search(np.arange(1, 2, 2)) ,
+    "n_estimators": tune.grid_search(np.arange(1, 2, 2)), 
+    "ccp_alpha" : tune.grid_search(np.arange(0.00, 0.1, 0.02)) 
 }
 
 train_with_resources = tune.with_resources(train_model, {"cpu": 1})
@@ -41,5 +41,8 @@ results = tuner.fit()
 scores = np.zeros(len(results))
 for i in range(len(results)):
     scores[i] = results[i].metrics["score"]
-print(np.max(scores))
+max_index = np.argmax(scores)
+print(results[max_index].metrics["score"])
+print(results[max_index].metrics["other_data"])
+
     
